@@ -1,5 +1,5 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
-
+from flask import Flask, render_template
+from flask import redirect, url_for, request, flash, jsonify
 
 from database_setup import Base, Categories, ProductType, Products, User
 from sqlalchemy import create_engine
@@ -195,7 +195,8 @@ def gdisconnect():
     print('In gdisconnect access token is %s' + access_token)
     print('User name is: ')
     print(login_session['username'])
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    url = 'https://accounts.google.com/o/'\
+        'oauth2/revoke?token=%s' % login_session['access_token']
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     print('result is ')
@@ -221,6 +222,7 @@ def gdisconnect():
 @app.route('/')
 @app.route('/categories')
 def CategoryList():
+    """ Displays all the categories in database  """
     cat = session.query(Categories).all()
     return render_template('CategoryList.html', categotylistnew=cat)
 
@@ -229,6 +231,8 @@ def CategoryList():
 
 @app.route('/categories/<int:category_id>/subcategories')
 def ProductTypeList(category_id):
+    """ takes category id and displays filters the product according to id,displays
+        the subcategories in particular category """
     subcat = session.query(ProductType).filter_by(
         category_id=category_id).all()
     return render_template('ProductTypeList.html',
@@ -237,52 +241,82 @@ def ProductTypeList(category_id):
 # Displays products under SubCategory
 
 
-@app.route('/categories/<int:category_id>/subcategories/<int:subcategory_id>/product')
+@app.route('/categories/<int:category_id>/'
+           'subcategories/<int:subcategory_id>/product')
 def ProductList(category_id, subcategory_id):
+    """ takes category_id and subcategory id  first
+    filters the product according to category and then subcategory
+    and displays the all product stored in subcategory """
     prodid = session.query(ProductType).filter_by(
         category_id=category_id, ProductTypeID=subcategory_id).one()
     productfinal = session.query(Products).filter_by(
         product_id=prodid.ProductTypeID).all()
     if 'username' not in login_session:
-        return render_template('ProductList-Public.html', productfinal=productfinal, category_id=category_id, subcategory_id=subcategory_id)
+        return render_template('ProductList-Public.html',
+                               productfinal=productfinal,
+                               category_id=category_id,
+                               subcategory_id=subcategory_id)
     else:
-        return render_template('ProductList.html', productfinal=productfinal, category_id=category_id, subcategory_id=subcategory_id)
+        return render_template('ProductList.html', productfinal=productfinal,
+                               category_id=category_id,
+                               subcategory_id=subcategory_id)
 
 
 # Displays details of particular product
 
-@app.route('/categories/<int:category_id>/subcategories/<int:subcategory_id>/product/<int:productdetail_id>/details')
+@app.route('/categories/<int:category_id>/subcategories/'
+           '<int:subcategory_id>/product/'
+           '<int:productdetail_id>/details')
 def ProductDetail(category_id, subcategory_id, productdetail_id):
+    """Takes product detail id and filters the product
+    giving the detail of particular product"""
     prodid = session.query(ProductType).filter_by(
         category_id=category_id, ProductTypeID=subcategory_id).one()
     product_detail = session.query(Products).filter_by(
         product_id=prodid.ProductTypeID, ProductID=productdetail_id).all()
-    return render_template('ProductDetail.html', product_detail=product_detail, category_id=category_id, subcategory_id=subcategory_id, productdetail_id=productdetail_id)
+    return render_template('ProductDetail.html', product_detail=product_detail,
+                           category_id=category_id,
+                           subcategory_id=subcategory_id,
+                           productdetail_id=productdetail_id)
 
 
 # Used to add products under SubCategory
 
-@app.route('/categories/<int:category_id>/subcategories/<int:subcategory_id>/product/create', methods=['GET', 'POST'])
+@app.route('/categories/<int:category_id>/subcategories/'
+           '<int:subcategory_id>/product/create', methods=['GET', 'POST'])
 def AddProduct(category_id, subcategory_id):
+    """ Adds product under subcategory list,
+        user need to be signin to perform this action.
+        if the input is empty return the template for input """
     if 'username' not in login_session:
         return redirect(url_for('showLogin'))
     prodid = session.query(ProductType).filter_by(
         category_id=category_id, ProductTypeID=subcategory_id).one()
     if request.method == 'POST':
-        addnew = Products(ProductName=request.form['name'], ProductDescription=request.form[
-                          'description'], product_id=prodid.ProductTypeID, user_id=login_session['user_id'])
+        addnew = Products(ProductName=request.form['name'],
+                          ProductDescription=request.form['description'],
+                          product_id=prodid.ProductTypeID,
+                          user_id=login_session['user_id'])
         session.add(addnew)
         session.commit()
         flash('new item is added')
-        return redirect(url_for('ProductList', category_id=category_id, subcategory_id=subcategory_id))
+        return redirect(url_for('ProductList',
+                                category_id=category_id,
+                                subcategory_id=subcategory_id))
     else:
-        return render_template('AddProduct.html', category_id=category_id, subcategory_id=subcategory_id)
+        return render_template('AddProduct.html',
+                               category_id=category_id,
+                               subcategory_id=subcategory_id)
 
 
 # Edits the product under subcategory
 
-@app.route('/categories/<int:category_id>/subcategories/<int:subcategory_id>/product/<int:productdetail_id>/edit', methods=['GET', 'POST'])
+@app.route('/categories/<int:category_id>/subcategories/'
+           '<int:subcategory_id>/product/'
+           '<int:productdetail_id>/edit', methods=['GET', 'POST'])
 def EditProduct(category_id, subcategory_id, productdetail_id):
+    """ Pruduct under particular category can be edited,
+    authentication is required to  edit product"""
     if 'username' not in login_session:
         return redirect(url_for('showLogin'))
     prodid = session.query(ProductType).filter_by(
@@ -290,22 +324,34 @@ def EditProduct(category_id, subcategory_id, productdetail_id):
     prod_edit = session.query(Products).filter_by(
         product_id=prodid.ProductTypeID, ProductID=productdetail_id).one()
     if prod_edit.user_id != login_session['user_id']:
-        return "<script>function myFunction(){alert('you are not allowed to edit this item,please make your own item');}</script><body onload = 'myFunction()'>"
+        return "<script>function myFunction()"\
+            "{alert('you are not allowed to"\
+            "edit this item,please make your own item');}"\
+            "</script><body onload = 'myFunction()'>"
     if request.method == 'POST':
         prod_edit.ProductName = request.form['name']
         prod_edit.ProductDescription = request.form['description']
         session.add(prod_edit)
         session.commit()
         flash('item edited successfully')
-        return redirect(url_for('ProductList', category_id=category_id, subcategory_id=subcategory_id, productdetail_id=productdetail_id))
+        return redirect(url_for('ProductList', category_id=category_id,
+                                subcategory_id=subcategory_id,
+                                productdetail_id=productdetail_id))
     else:
-        return render_template('EditProduct.html', prod_edit=prod_edit, category_id=category_id, subcategory_id=subcategory_id, productdetail_id=productdetail_id)
+        return render_template('EditProduct.html', prod_edit=prod_edit,
+                               category_id=category_id,
+                               subcategory_id=subcategory_id,
+                               productdetail_id=productdetail_id)
 
 
 # Delete products under subcategory
 
-@app.route('/categories/<int:category_id>/subcategories/<int:subcategory_id>/product/<int:productdetail_id>/delete', methods=['GET', 'POST'])
+@app.route('/categories/<int:category_id>/subcategories/'
+           '<int:subcategory_id>/product/<int:productdetail_id>'
+           '/delete', methods=['GET', 'POST'])
 def DeleteProduct(category_id, subcategory_id, productdetail_id):
+    """ Products of productdetail_id get deleted on request,
+    if the user is not log in request is not performed """
     if 'username' not in login_session:
         return redirect(url_for('showLogin'))
     prodid = session.query(ProductType).filter_by(
@@ -313,33 +359,45 @@ def DeleteProduct(category_id, subcategory_id, productdetail_id):
     prod_delete = session.query(Products).filter_by(
         product_id=prodid.ProductTypeID, ProductID=productdetail_id).one()
     if prod_delete.user_id != login_session['user_id']:
-        return "<script>function myFunction(){alert('you are not allowed to Delete this item,please make your own item');}</script><body onload = 'myFunction()'>"
+        return "<script>function myFunction()"\
+               "{alert('you are not allowed to Delete this item,please"\
+               "make your own item');}</script><body onload = 'myFunction()'>"
     if request.method == 'POST':
         session.delete(prod_delete)
         session.commit()
         flash('item Deleted')
-        return redirect(url_for('ProductList', category_id=category_id, subcategory_id=subcategory_id))
+        return redirect(url_for('ProductList', category_id=category_id,
+                                subcategory_id=subcategory_id))
     else:
-        return render_template('DeleteProduct.html', prod_delete=prod_delete, category_id=category_id, subcategory_id=subcategory_id, productdetail_id=productdetail_id)
+        return render_template('DeleteProduct.html', prod_delete=prod_delete,
+                               category_id=category_id,
+                               subcategory_id=subcategory_id,
+                               productdetail_id=productdetail_id)
 
 # JSON API ENDPOINTS
+
+""" provides API endpoints in JSON format """
 
 
 @app.route('/categories/JSON/')
 def CategoryListJSON():
+    """Provides the JSON of all categories"""
     cat = session.query(Categories).all()
     return jsonify(categorylist=[i.serialize for i in cat])
 
 
 @app.route('/categories/<int:category_id>/subcategories/JSON/')
 def ProductTypeListJSON(category_id):
+    """Provides the subcategories in JSON format"""
     subcat = session.query(ProductType).filter_by(
         category_id=category_id).all()
     return jsonify(productlist=[i.serialize for i in subcat])
 
 
-@app.route('/categories/<int:category_id>/subcategories/<int:subcategory_id>/product/JSON/')
+@app.route('/categories/<int:category_id>/subcategories/'
+           '<int:subcategory_id>/product/JSON/')
 def ProductListJSON(category_id, subcategory_id):
+    """Provides the all products and their detail in JSON"""
     prodid = session.query(ProductType).filter_by(
         category_id=category_id, ProductTypeID=subcategory_id).one()
     productfinal = session.query(Products).filter_by(
@@ -347,8 +405,10 @@ def ProductListJSON(category_id, subcategory_id):
     return jsonify(productdetail=[i.serialize for i in productfinal])
 
 
-@app.route('/categories/<int:category_id>/subcategories/<int:subcategory_id>/product/<int:productdetail_id>/details/JSON/')
+@app.route('/categories/<int:category_id>/subcategories/'
+           '<int:subcategory_id>/product/<int:productdetail_id>/details/JSON/')
 def ProductDetailJSON(category_id, subcategory_id, productdetail_id):
+    """Provides the products detail in JSON"""
     if request.method == 'GET':
         prodid = session.query(ProductType).filter_by(
             category_id=category_id, ProductTypeID=subcategory_id).one()
