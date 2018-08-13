@@ -177,7 +177,7 @@ def getUserID(email):
     try:
         user = session.query(User).filter_by(Email=email).one()
         return user.UserID
-    except:
+    except ImportError:
         return None
 
 # disconnects google account
@@ -231,7 +231,8 @@ def CategoryList():
 
 @app.route('/categories/<int:category_id>/subcategories')
 def ProductTypeList(category_id):
-    """ takes category id and displays filters the product according to id,displays
+    """ takes category id and displays
+        filters the product according to id,displays
         the subcategories in particular category """
     subcat = session.query(ProductType).filter_by(
         category_id=category_id).all()
@@ -373,6 +374,7 @@ def DeleteProduct(category_id, subcategory_id, productdetail_id):
                                category_id=category_id,
                                subcategory_id=subcategory_id,
                                productdetail_id=productdetail_id)
+
 
 # JSON API ENDPOINTS
 
