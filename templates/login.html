@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
+		<link rel="stylesheet" type="text/css" href="{{url_for('static',filename='css/main.css')}}">
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"> </script>
+		<script src="https://apis.google.com/js/client:platform.js?onload=start" async defer></script>
+	</head>
+	<body>
+		<div class="navigation">
+			<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+				<a class="navbar-brand" href="#">ProductListing</a>
+				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+					<ul class="navbar-nav">
+						<li class="nav-item active">
+							<a class="nav-link" href="{{url_for('CategoryList')}}">Home <span class="sr-only">(current)</span></a>
+						</li>
+						<li class="nav-item ">
+							{% if 'username' not in session %}
+								<a href="{{url_for('showLogin')}}"><button type="button" class="btn btn-success">Log in</button></a>
+								
+							{% else %}
+								<a href="{{url_for('gdisconnect')}}"><button type="button" class="btn btn-success">Log out</button></a>
+							{% endif %}
+						</li>
+					</ul>
+				</div>
+			</nav>
+		</div>
+		<div class="container items">
+			<h1>login</h1>
+			
+			<!--google sign in API-->
+			<div id = 'SignIn'>
+				<span class= "g-signin"
+					data-scope = "openid email"
+					data-clientID = "1037829705311-fpl4enhmv7o11hcv102sdjtc9j2um57s.apps.googleusercontent.com"
+					data-redirecturi = "postmessage"
+					data-accesstype= "offline"
+					data-cookiepolicy="single_host_origin"
+					data-callback="signInCallback"
+					data-approvalprompt = "force">
+					
+				</span>
+			</div>
+			<div id="result"></div>
+			<script>
+				function signInCallback(authResult){
+					//hides the sign in button after user is authorised
+					if (authResult['code']) {
+						$('#SignIn').attr('style','display:none');
+						$.ajax(
+						{
+							type:'POST',
+							url:'/gconnect?state={{STATE}}',
+							processData:false,
+							data:authResult['code'],
+							contentType:'application/octet-stream; charset=UTF-8',
+							success: function(result){
+								if (result) {
+			$('#result').html('login successful'+result+'redirecting....')
+			setTimeout( function(){
+				window.location.href = '/categories';
+			},4000);
+								}
+								else if (authResult['error']) {
+									console.log('there was a error'+authResult['error']);
+								}
+								else {
+									$('#result').html('failed to make a serverside call');
+								}
+							}
+						});
+							
+						}
+					}
+			</script>
+		</body>
+	</html>

@@ -1,0 +1,23 @@
+body{
+	background-color: #5BC0BE;
+}
+.container{
+	background-color: #ffffff;
+}
+h1{
+	padding-top: 70px;
+	padding-bottom: 30px;
+}
+.items{
+	padding-bottom: 30px;
+}
+.links{
+	font-size: 50px;
+	color: #0B132B;
+}
+.addnew{
+	margin-bottom: 30px;
+}
+.delete{
+	padding-top: 10px;
+}
