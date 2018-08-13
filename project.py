@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
-app = Flask(__name__)
+
 
 from database_setup import Base, Categories, ProductType, Products, User
 from sqlalchemy import create_engine
@@ -22,6 +22,9 @@ import requests
 import hmac
 import hashlib
 import os
+
+app = Flask(__name__)
+
 
 CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())[
     'web']['client_id']
@@ -51,7 +54,7 @@ def dated_url_for(endpoint, **values):
     return url_for(endpoint, **values)
 
 
-#authentication and authorization
+# authentication and authorization
 # Creating log in path
 
 
@@ -116,8 +119,8 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
-                                 200)
+        response = make_response(json.dumps(
+            'Current user is already connected.'), 200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -149,7 +152,8 @@ def gconnect():
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;\
+                -webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     print("done!")
     return output
@@ -191,8 +195,8 @@ def gdisconnect():
     print('In gdisconnect access token is %s' + access_token)
     print('User name is: ')
     print(login_session['username'])
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session[
-        'access_token']
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s'
+                                             % login_session['access_token']
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     print('result is ')
@@ -228,7 +232,8 @@ def CategoryList():
 def ProductTypeList(category_id):
     subcat = session.query(ProductType).filter_by(
         category_id=category_id).all()
-    return render_template('ProductTypeList.html', subList=subcat, category_id=category_id)
+    return render_template('ProductTypeList.html',
+                           subList=subcat, category_id=category_id)
 
 # Displays products under SubCategory
 
