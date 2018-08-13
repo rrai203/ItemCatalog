@@ -86,7 +86,7 @@ http://localhost:5000
 /categories/<int:category_id>/subcategories/<int:subcategory_id>/product/<int:productdetail_id>/details/JSON/  (Displays all product details in particular list)
 
 
-##Note
+## Note
 
 if having issues while logging out.Please clear cache and cookies then try again.
 
