@@ -31,7 +31,7 @@ CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())[
 APPLICATION_NAME = 'itemCatalog'
 
 # Create session and connect to DB
-engine = create_engine('sqlite:///catalognew.db')
+engine = create_engine('postgresql://catalog:catalog@localhost/catalog')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = scoped_session(DBSession)
@@ -422,4 +422,4 @@ def ProductDetailJSON(category_id, subcategory_id, productdetail_id):
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
     app.debug = True
-    app.run(host='0.0.0.0', port=5000)
+    app.run()
